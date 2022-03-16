@@ -1,0 +1,118 @@
+<launch>
+
+  <arg name="speech_recognition_language" default="japanese" />
+  <arg name="speech_recognition_network" default="online" />
+  <arg name="audio_topic" default="/webrtcvad_ros/speech_audio" />
+
+  <!-- Insta360 images -->
+  <include file="$(find jsk_perception)/sample/sample_insta360_air.launch">
+    <arg name="gui" value="false" />
+    <!-- Reduce CPU load -->
+    <!-- To check the valid formats, -->
+    <!-- $ sudo apt-get install v4l-utils -->
+    <!-- $ v4l2-ctl -d /dev/insta360 -\-list-formats-ext -->
+    <arg name="height" value="736" />
+    <arg name="width" value="1472" />
+    <arg name="throttle" value="true" />
+    <arg name="throttled_rate" value="5" /> 
+    <!-- for melodic -->
+    <arg name="use_usb_cam" value="false" />
+  </include>
+
+  <!-- speech recognition -->
+  <include file="$(find audio_capture)/launch/capture.launch" >
+    <arg name="format" value="wave" />
+    <arg name="device" value="plughw:0,0" />
+  </include>
+
+  <node
+        name="webrtcvad_ros"
+        pkg="webrtcvad_ros"
+        type="webrtcvad_ros.py"
+        output="screen"
+        >
+        <rosparam>
+            aggressiveness: 1
+        </rosparam>
+        <remap from="audio_data" to="/audio/audio" />
+        <remap from="audio_info" to="/audio/audio_info" />
+  </node>
+
+  <!-- speech_recognition (japanese, online) -->
+  <node
+      name="speech_to_text"
+      pkg="respeaker_ros"
+      type="speech_to_text.py"
+      respawn="true"
+      output="screen"
+      if="$(eval arg('speech_recognition_language') == 'japanese' and arg('speech_recognition_network') == 'online')"
+      >
+    <remap from="audio" to="$(arg audio_topic)"/>
+    <rosparam subst_value="true">
+      language: ja-JP
+      self_cancellation: false
+      tts_tolerance: 1.0
+    </rosparam>
+  </node>
+
+  <!-- speech_recognition (japanese, offline) -->
+  <include
+      file="$(find julius_ros)/launch/julius.launch"
+      if="$(eval arg('speech_recognition_language') == 'japanese' and arg('speech_recognition_network') == 'offline')"
+      >
+    <arg name="launch_audio_capture" value="false"/>
+    <arg name="launch_sound_play" value="false"/>
+    <arg name="speech_to_text_topic" value="/speech_to_text_jp"/>
+  </include>
+
+  <!-- speech_recognition (english, online) -->
+  <node
+      name="speech_to_text"
+      pkg="respeaker_ros"
+      type="speech_to_text.py"
+      respawn="true"
+      output="screen"
+      if="$(eval arg('speech_recognition_language') == 'english' and arg('speech_recognition_network') == 'online')"
+      >
+    <remap from="audio" to="$(arg audio_topic)" />
+    <remap from="speech_to_text" to="/speech_to_text_en" />
+    <rosparam subst_value="true">
+      language: "en-US"
+      self_cancellation: true
+      tts_action_names:
+      - robotsound
+      - robotsound_jp
+      tts_tolerance: 0.5
+    </rosparam>
+  </node>
+
+  <!-- speech_recognition (english, offline) -->
+  <node
+      pkg="ros_speech_recognition"
+      type="speech_recognition_node.py"
+      name="speech_recognition"
+      respawn="true"
+      output="screen"
+      if="$(eval arg('speech_recognition_language') == 'english' and arg('speech_recognition_network') == 'offline')"
+      >
+    <remap from="/Tablet/voice" to="/speech_to_text_en" />
+    <rosparam subst_value="true">
+      audio_topic: $(arg audio_topic)
+      n_channel: 1
+      depth: 16
+      sample_rate: 16000
+      engine: "Sphinx"
+      language: "en-US"
+      continuous: True
+    </rosparam>
+  </node>
+
+  <!-- display recognition result -->
+  <node
+      name="print_stt_result"
+      pkg="webrtcvad_ros"
+      type="print_stt_result.py"
+      output="screen"
+      />
+
+</launch>
