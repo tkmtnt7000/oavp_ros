@@ -1,0 +1,29 @@
+<launch>
+  <arg name="use_window" default="true" doc="set false if you do not want to display window" />
+  <arg name="use_usb_cam" default="false" doc="set true to use USB camera image as input"/>
+  <arg name="attributes" default="ALL" doc="set either ALL or DEFAULT for returning attributes"/>
+
+  <!-- Launch OAVP -->
+  <include file="$(find oavp_ros)/launch/oavp.launch">
+    <arg name="speech_recognition_language" value="japanese" />
+    <arg name="speech_recognition_network" value="online" />
+    <arg name="audio_topic" value="/webrtcvad_ros/speech_audio" />
+  </include>
+
+  <!-- aws_detect_faces.py -->
+  <node name="aws_detect_faces"
+        pkg="jsk_perception" type="aws_detect_faces.py"
+        output="screen"
+        clear_params="true" >
+    <remap from="image" to="/edgetpu_panorama_object_detector/output/image" />
+    <rosparam subst_value="true">
+      use_window: $(arg use_window)
+      aws_credentials_path: /tmp/aws.json
+      always_subscribe: true
+      attributes: $(arg attributes)
+    </rosparam>
+  </node>
+
+  <!-- <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" if="$(arg use_window)" /> -->
+
+</launch>
