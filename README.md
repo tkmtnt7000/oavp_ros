@@ -1,5 +1,7 @@
 # Omni Audio Visual Package
 
+[![main](https://github.com/tkmtnt7000/oavp_ros/actions/workflows/main.yaml/badge.svg)](https://github.com/tkmtnt7000/oavp_ros/actions/workflows/main.yaml)
+
 This is the package for using a set of omni directional camera, speaker and mic by ROS.
 
 ## Create standalone workspace
