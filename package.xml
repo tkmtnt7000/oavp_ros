@@ -13,11 +13,11 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <exec_depend>audio_capture</exec_depend>
-  <exec_depend>julius_ros</exec_depend>
-  <exec_depend>jsk_perception</exec_depend>
-  <exec_depend>respeaker_ros</exec_depend>
-  <exec_depend>ros_speech_recognition</exec_depend>
-  <exec_depend>webrtcvad_ros</exec_depend>
+  <!-- <exec_depend>julius_ros</exec_depend> -->
+  <!-- <exec_depend>jsk_perception</exec_depend> -->
+  <!-- <exec_depend>respeaker_ros</exec_depend> -->
+  <!-- <exec_depend>ros_speech_recognition</exec_depend> -->
+  <!-- <exec_depend>webrtcvad_ros</exec_depend> -->
 
   <export>
   </export>
